@@ -51,17 +51,9 @@ class Sequence:
 
     @classmethod
     def from_list(cls, dof_list, millis_list, pos_list, seq_name=''):
-        """
-        Cria uma Sequence a partir de:
-          • dof_list   -> ['base', 'tower_1', ...]
-          • millis_list-> [0, 200, 400, ...]
-          • pos_list   -> lista de listas, cada sub-lista contém as posições
-                          do respectivo DoF ao longo dos instantes
-                          (mesmo comprimento de millis_list)
-        """
         frames = []
         for idx, millis in enumerate(millis_list):
-            # constrói dicionário {dof: posição naquele instante}
+
             positions = {d: pos_list[j][idx] for j, d in enumerate(dof_list)}
             frames.append(Frame(millis, positions))
         return cls(seq_name, frames)
