@@ -4,7 +4,7 @@ import time
 import copy
 import numpy as np
 import os
-
+import threading
 
 class Sequence:
     """
@@ -444,3 +444,66 @@ class RecorderPrimitive(pypot.primitive.Primitive):
         # stop self
         self.stop()
         return self.frames_list
+class SimpleSequencePlayer(threading.Thread):
+    """Plays a Sequence on um DxlRobot sem PyPot nem pypot.primitive."""
+
+    def __init__(self, robot, seq: "Sequence",
+                 speed: float = 1.0, amp: float = 1.0,
+                 post: float = 0.0, loop: bool = False):
+        super().__init__(daemon=True)
+        self._r = robot
+        self._seq = seq
+        self._speed = max(0.1, speed)
+        self._amp = amp
+        self._post = post
+        self._loop = loop
+        self._stop_evt = threading.Event()
+
+    # ----------------- API pública -----------------
+
+    def stop(self) -> None:
+        """Interrompe a execução."""
+        self._stop_evt.set()
+
+    # ----------------- thread main -----------------
+
+    def run(self) -> None:
+        while not self._stop_evt.is_set():
+            self._play_once()
+            if not self._loop:
+                break
+
+    # ----------------- internals -------------------
+
+    def _play_once(self) -> None:
+        if not self._seq.frames:
+            return
+
+        ref = self._seq.frames[0].positions      # frame 0 p/ amplitude
+        t_start = time.time()
+
+        for frame in self._seq.frames:
+            if self._stop_evt.is_set():
+                break
+
+            # === tempo alvo vs. corrente ===
+            target_s = frame.millis / 1000.0 / self._speed
+            delay = target_s - (time.time() - t_start)
+            if delay > 0:
+                time.sleep(delay)
+
+            # === prepara posições ===
+            pose = {}
+            for dof, val in frame.positions.items():
+                base = ref[dof]
+                delta = (val - base) * self._amp
+                adj = base + delta
+
+                if dof == "tower_1":
+                    adj += self._post
+                elif dof in ("tower_2", "tower_3"):
+                    adj -= self._post
+                pose[dof] = adj
+
+            # envia para o robô
+            self._r.goto(pose, duration=0.0, wait=False)
