@@ -3,6 +3,7 @@ A Flask webserver for handling requests to the robot
 """
 from __future__ import print_function
 
+from typing import Any, Callable, List
 import os
 from . import kinematics as k
 from flask import Flask, render_template, request, jsonify
@@ -10,7 +11,6 @@ import json
 import numpy as np
 from collections import OrderedDict
 import socket
-import requests
 from flask_cors import CORS
 
 class Server(object):
@@ -20,11 +20,15 @@ class Server(object):
 
     def __init__(self):
         self.master_robot = None
-        self.robots = []
-        self.handle_input = lambda: None
-        self.record = lambda: None
-        self.stop_record = lambda: None
-        self.store_gesture = lambda: None
+        self.robots: List[Any] = []
+        self.handle_input: Callable[[Any, str, List[str] | None], None] = (
+            lambda _robot, _cmd, _args=None: None
+        )
+        self.record: Callable[[Any], None] = lambda _robot: None
+        self.stop_record: Callable[[Any], str] = lambda _robot: ""
+        self.store_gesture: Callable[[str, Any, str | None], None] = (
+            lambda _name, _frames, _label=None: None
+        )
 
         # playback params
         self.speed = 1.0
@@ -47,6 +51,7 @@ class Server(object):
         self.stop_record = stop_record
         self.store_gesture = store_gesture
 
+    @staticmethod
     def start_server(self, host, port):
         """
         initialize the flask server
@@ -97,9 +102,9 @@ def handle_sequence(gesture):
     """
     speed, amp, post = request.args.get('speed'), request.args.get('amp'), request.args.get('post')
 
-    if speed==None: speed = 1
-    if amp==None: amp = 1
-    if post==None: post = 1
+    if speed is None: speed = 1
+    if amp is None: amp = 1
+    if post is None: post = 1
 
     server.speed = float(speed)
     server.amp = float(amp)
@@ -165,7 +170,7 @@ def set_position():
     }
 
     # handle mirroring mode (swap roll for towers 2 and 3, flip yaw)
-    if (mirror):
+    if mirror:
         # motor_pos['tower_1']= pos[0]
         motor_pos['tower_2'] = pos[2]
         motor_pos['tower_3'] = pos[1]
@@ -174,7 +179,7 @@ def set_position():
     # prevent quick turning around
     if 'base' in server.motor_pos:
         last_yaw = server.motor_pos['base']
-        if(np.abs(last_yaw - motor_pos['base']) > 100):
+        if np.abs(last_yaw - motor_pos['base']) > 100:
             motor_pos['base'] = last_yaw
 
     # adjust the duration (numeric input to goto_position)
@@ -215,7 +220,7 @@ def get_sequences():
 @app.route('/sequences/<seq_id>', methods=['POST'])
 def update_sequence(seq_id):
     """
-    Updates a sequence's name. If the sequence was temporary before, make it a persistant sequence.
+    Updates a sequence's name. If the sequence was temporary before, make it a persistent sequence.
     """
     # load the data from the gesture generation form
     data = json.loads(request.data)
@@ -228,7 +233,7 @@ def update_sequence(seq_id):
     seq_dir = "%s%s/" % (SEQUENCES_DIR, server.master_robot.name)
     tmp_dir = seq_dir + "tmp/"
     # if should belong in subdirectory, make directory and truncate sequence name
-    if ('/' in name):
+    if '/' in name:
         seq_dir += name[:name.rfind('/') + 1]
         if not os.path.isdir(seq_dir):
             os.makedirs(seq_dir)
@@ -237,7 +242,7 @@ def update_sequence(seq_id):
     # handle collisions with existing gesture names
     new_name = name
     name_ctr = 1
-    while ((new_name + '_sequence.json') in os.listdir(seq_dir)):
+    while (new_name + '_sequence.json') in os.listdir(seq_dir):
         new_name = name + '_' + str(name_ctr)
         name_ctr += 1
     name = new_name
@@ -295,7 +300,7 @@ def get_videos():
     # save all videos
     for vid in os.listdir(video_dir):
         # check if json
-        if (vid[-5:] == '.json'):
+        if vid[-5:] == '.json':
             # load file
             data = json.load(open(video_dir + vid))
             # catch if video was already added
@@ -332,9 +337,9 @@ def handle_record_stop():
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def render_gui(path):
+def render_gui(_path):
     """
-    catch all that renders the react app
+    catch all that renders the React app
     """
     return render_template('index.html')
 
