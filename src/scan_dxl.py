@@ -10,7 +10,7 @@ scan_all_ports()        -> Dict[str, List[int]]
 build_config_dynamic()  -> Tuple[str, dict] | None
 """
 
-from typing import List, Dict, Tuple
+from typing import List, Dict
 import time
 from serial.tools import list_ports
 from dynamixel_sdk import PortHandler, PacketHandler
@@ -60,15 +60,9 @@ def scan_all_ports() -> Dict[str, List[int]]:
 
     return detected
 
-def build_config_dynamic(scan: dict[str, list[int]]
-                         ) -> dict[str, dict] | None:
+def build_config_dynamic() -> dict[str, dict] | None:
     """
     Build a minimal *runtime* configuration for a ‘Woody’ robot (IDs 1-5).
-
-    Parameters
-    ----------
-    scan : Dict[str, List[int]]
-        The dictionary returned by :func:`scan_all_ports`.
 
     Returns
     -------
@@ -76,6 +70,7 @@ def build_config_dynamic(scan: dict[str, list[int]]
         ``(port@baud, cfg_dict)`` if the pattern ``[1,2,3,4,5]`` is found,
         otherwise ``None``.
     """
+    scan = scan_all_ports()
 
     for port_id, ids in scan.items():
         if sorted(ids) == [1, 2, 3, 4, 5]:

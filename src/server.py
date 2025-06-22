@@ -1,7 +1,6 @@
 """
 A Flask webserver for handling requests to the robot
 """
-from __future__ import print_function
 
 from typing import Any, Callable, List
 import os
@@ -12,6 +11,7 @@ import numpy as np
 from collections import OrderedDict
 import socket
 from flask_cors import CORS
+from markupsafe import escape
 
 class Server(object):
     """
