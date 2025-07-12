@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
-import threading
+# import threading # It is not used, so was commented
 
-class LivePlot():
+class LivePlot:
     # init
     def __init__(self,num_subplots=1):
         self.line_list = []

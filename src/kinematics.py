@@ -1,6 +1,6 @@
-'''
+"""
 Kinematics for Blossom
-'''
+"""
 
 import numpy as np
 from numpy import cos
@@ -26,8 +26,8 @@ r_w = 5.0
 # position of front attachment point wrt intertial frame
 p1_0 = np.array([r,0,0])
 # define rotation matrices to other attachment points
-R_12 = np.array([[cos(2*pi/3), -sin(2*pi/3), 0],\
-    [sin(2*pi/3), cos(2*pi/3), 0],\
+R_12 = np.array([[cos(2*pi/3), -sin(2*pi/3), 0],
+    [sin(2*pi/3), cos(2*pi/3), 0],
     [0,0,1]])
 R_13 = np.transpose(R_12)
 # calculate positions of attachment points
@@ -53,11 +53,11 @@ def angle2dcm(t1,t2,t3):
     returns:
         direction cosine matrix
     """
-    return np.transpose(np.matrix([[ cos(t1)*cos(t2), cos(t1)*sin(t2)*sin(t3) - cos(t3)*sin(t1), sin(t1)*sin(t3) + cos(t1)*cos(t3)*sin(t2)],\
-[ cos(t2)*sin(t1), cos(t1)*cos(t3) + sin(t1)*sin(t2)*sin(t3), cos(t3)*sin(t1)*sin(t2) - cos(t1)*sin(t3)],\
+    return np.transpose(np.matrix([[ cos(t1)*cos(t2), cos(t1)*sin(t2)*sin(t3) - cos(t3)*sin(t1), sin(t1)*sin(t3) + cos(t1)*cos(t3)*sin(t2)],
+[ cos(t2)*sin(t1), cos(t1)*cos(t3) + sin(t1)*sin(t2)*sin(t3), cos(t3)*sin(t1)*sin(t2) - cos(t1)*sin(t3)],
 [        -sin(t2),                           cos(t2)*sin(t3),                           cos(t2)*cos(t3)]]))
 
-def get_motor_pos(ori,accel):
+def get_motor_pos(ori,accel) -> np.ndarray:
     """
     Get position of the motors given orientation using inverse kinematics
     args:
@@ -97,30 +97,32 @@ def get_motor_pos(ori,accel):
     # calculate distance motor must rotate
     for i, p_i in enumerate(np.transpose(p_0)):
         # get just x,z components
+        p_i = np.asarray(p_i)
         p_i_xz = p_i[[0,2]]
         # get displacement and its magnitude
         del_h = p_i_xz-p_xz[i]
         mag_del_h = np.linalg.norm(del_h)
 
         # calculate motor angle
-        theta = np.rad2deg(mag_del_h/r_w)*np.sign(del_h[1])
+        theta = int(round(float(np.rad2deg(mag_del_h / r_w) * np.sign(del_h[1]))))
         # print(theta)
         motor_pos = np.append(motor_pos,theta)
 
     # constrain tower motor range (50-130)
     motor_pos = np.maximum(np.minimum(motor_pos+h,h_max),h_min)
-    if (e_1 < -np.pi):
+    if e_1 < -np.pi:
         e_1+=2*np.pi
-    elif(e_1 > np.pi):
+    elif e_1 > np.pi:
         e_1-=2*np.pi
     # e_1-=np.pi
     # add the base motor for yaw (-140,140)
-    motor_pos = np.append(motor_pos,np.maximum(np.minimum(np.rad2deg(1.3*e_1),140),-140))
+    motor_pos = np.append(motor_pos, int(round(np.clip(np.rad2deg(1.3 * e_1), -140, 140))))
+
     # motor_pos = np.append(motor_pos, np.rad2deg(e_1))
     # motor_pos = np.append(motor_pos,np.rad2deg(e_1))
     return motor_pos
 
-def get_ears_pos(e):
+def get_ears_pos(e)-> int:
     """
     Get position of the ears from the app slider
     args:
@@ -137,7 +139,7 @@ def get_ears_pos(e):
     # interpolate from slider range (0-100)
     e_pos = (e-50)*(ears_range/50.0)+ears_offset
     # print(e_pos)
-    return e_pos
+    return int(round(e_pos))
 
 def fwd_kin(m):
     """
@@ -187,7 +189,7 @@ def integrate_accel(ori,accel):
     t = time.time()
 
     # return params
-    return (x,v,time.time())
+    return x,v,time.time()
 
 def truncate(n):
     """
@@ -208,4 +210,4 @@ def integrate(x,x_d,del_t):
     returns:
         the new present value of x
     """
-    return (x+np.multiply(x_d,del_t))
+    return x+np.multiply(x_d, del_t)

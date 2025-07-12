@@ -17,7 +17,7 @@ class RobotConfig(object):
     def __init__(self):
         self.ports = pd.get_available_ports()
         # catch no available ports
-        if (len(self.ports) == 0):
+        if len(self.ports) == 0:
             self.ports = ['']
         self.configs = {
             'woody': {
@@ -94,7 +94,7 @@ class RobotConfig(object):
         assign unique ports to a list of names for as many ports as we have available
         """
         # test config for debugging without a robot
-        if (names[0] == 'test'):
+        if names[0] == 'test':
             return {names[0]: self.configs[names[0]]}
 
         # get configs for all robots
@@ -111,10 +111,10 @@ class RobotConfig(object):
                 print("No ports available")
                 sys.exit(1)
             try:
-                if (names[0]!='blossom' and names[0]!='vyo'):
+                if names[0]!= 'blossom' and names[0]!= 'vyo':
                     dxl_io = pd.Dxl320IO(port)
                 else:
-                    if (names[0]=='vyo'):
+                    if names[0]== 'vyo':
                         dxl_io = pd.DxlIO(port,57600)
                     else:
                         dxl_io = pd.DxlIO(port)
@@ -131,7 +131,7 @@ class RobotConfig(object):
                 scanned_ids = []
 
             # print found motors
-            if (len(scanned_ids)==0):
+            if len(scanned_ids)==0:
                 print("No motors found on %s" % port)
                 continue
             else:

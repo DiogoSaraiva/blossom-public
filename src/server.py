@@ -97,9 +97,9 @@ def handle_sequence(gesture):
     """
     speed, amp, post = request.args.get('speed'), request.args.get('amp'), request.args.get('post')
 
-    if speed==None: speed = 1
-    if amp==None: amp = 1
-    if post==None: post = 1
+    if speed is None: speed = 1
+    if amp is None: amp = 1
+    if post is None: post = 1
 
     server.speed = float(speed)
     server.amp = float(amp)
@@ -165,7 +165,7 @@ def set_position():
     }
 
     # handle mirroring mode (swap roll for towers 2 and 3, flip yaw)
-    if (mirror):
+    if mirror:
         # motor_pos['tower_1']= pos[0]
         motor_pos['tower_2'] = pos[2]
         motor_pos['tower_3'] = pos[1]
@@ -174,7 +174,7 @@ def set_position():
     # prevent quick turning around
     if 'base' in server.motor_pos:
         last_yaw = server.motor_pos['base']
-        if(np.abs(last_yaw - motor_pos['base']) > 100):
+        if np.abs(last_yaw - motor_pos['base']) > 100:
             motor_pos['base'] = last_yaw
 
     # adjust the duration (numeric input to goto_position)
@@ -228,7 +228,7 @@ def update_sequence(seq_id):
     seq_dir = "%s%s/" % (SEQUENCES_DIR, server.master_robot.name)
     tmp_dir = seq_dir + "tmp/"
     # if should belong in subdirectory, make directory and truncate sequence name
-    if ('/' in name):
+    if '/' in name:
         seq_dir += name[:name.rfind('/') + 1]
         if not os.path.isdir(seq_dir):
             os.makedirs(seq_dir)
@@ -237,7 +237,7 @@ def update_sequence(seq_id):
     # handle collisions with existing gesture names
     new_name = name
     name_ctr = 1
-    while ((new_name + '_sequence.json') in os.listdir(seq_dir)):
+    while (new_name + '_sequence.json') in os.listdir(seq_dir):
         new_name = name + '_' + str(name_ctr)
         name_ctr += 1
     name = new_name
@@ -295,7 +295,7 @@ def get_videos():
     # save all videos
     for vid in os.listdir(video_dir):
         # check if json
-        if (vid[-5:] == '.json'):
+        if vid[-5:] == '.json':
             # load file
             data = json.load(open(video_dir + vid))
             # catch if video was already added

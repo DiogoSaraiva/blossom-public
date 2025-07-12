@@ -50,3 +50,8 @@ class Motor:
 
     def get_speed(self):
         self.speed = self.m.get_moving_speed({self.id})[0]
+
+    def move_to(self, pos, speed=None):
+        self.pos = pos
+        self.m.set_moving_speed({self.id: speed or self.def_speed})
+        self.m.set_goal_position({self.id: self.pos})

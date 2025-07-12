@@ -60,7 +60,7 @@ class Robot(object):
             wait        wait for the motors to reach goal before new cmd
         """
         # activate motors
-        if(self.compliant):
+        if self.compliant:
             self.set_compliant(False)
 
         # try going to position
@@ -117,7 +117,7 @@ class Robot(object):
         seq = sequence.Sequence.from_json(seq_fn, rad)
 
         # don't add if sequence name already exists
-        if (seq.seq_name in self.seq_list.keys() and not force):
+        if seq.seq_name in self.seq_list.keys() and not force:
             return
         else:
             self.add_sequence(seq)

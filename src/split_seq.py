@@ -15,7 +15,7 @@ for sn in long_seq.keys():
     for i,f in enumerate(s.frames):
         millis = f.millis
         mod = millis % split_time
-        if (mod < last_mod):
+        if mod < last_mod:
             start_i.append(i)
             print(millis)
         last_mod = mod
@@ -23,7 +23,7 @@ for sn in long_seq.keys():
     start_i.append(-1)
     trigger_list = []
     for j,i in enumerate(start_i):
-        if (j==len(start_i)-1):
+        if j==len(start_i)-1:
             break
         seq_name = sn+str(j)
         print(i)
@@ -39,9 +39,9 @@ for sn in long_seq.keys():
         print(j)
 
         g = seq_name
-        if (j==len(start_i)-2):
+        if j==len(start_i)-2:
             g = g+'/calm'
-        if (j==0):
+        if j==0:
             start_millis = start_millis+50
         trigger_list.append({'emotion':'happy','gesture':g,'time':start_millis})
 

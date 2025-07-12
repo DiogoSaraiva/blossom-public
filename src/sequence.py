@@ -5,17 +5,16 @@ import copy
 import numpy as np
 import os
 
-class Sequence():
+class Sequence:
     """
     Sequence of Frames to be loaded/stored/played back
     """
-    seq = ''
-    seq_name = ''
-    frames = []
 
-    def __init__(self, seq_name, frames=[]):
+    def __init__(self, seq_name, frames=None):
+        if frames is None:
+            frames = []
         self.seq_name = seq_name
-        self.frames = frames
+        self.frames = frames if frames is not None else []
         # print(self.to_list())
 
     @classmethod
@@ -30,7 +29,6 @@ class Sequence():
         """
         # open sequence
         with open(seq_fn) as seq_f:
-            seq_f = open(seq_fn)
             seq = json.load(seq_f)
 
             # get relative path from robot's direct ory
@@ -79,19 +77,18 @@ class Sequence():
             # get current frame and make Frame object
             cur_frame = Frame.from_json(frame_list[t])
             # if json file defines position in rad
-            if (rad):
+            if rad:
                 cur_frame.rad_to_angle()
             frames.append(cur_frame)
         return frames
 
-    @staticmethod
-    def append(f):
+    def append(self, f):
         """
         Append frame
         args:
             f   the frame to add
         """
-        frames.append(f)
+        self.frames.append(f)
 
     # convert to list
     # include DoFs, times, and motor positions
@@ -121,7 +118,7 @@ class Sequence():
         # transpose so that each row (major index) is all pos for 1 DoF
         motor_pos_list = np.array(motor_pos_list).T
         # interpolate if 
-        if (millis_inc>0):
+        if millis_inc>0:
             pos_interp = []
             t_start = millis_list[0]
             t_end = millis_list[-1]
@@ -131,16 +128,16 @@ class Sequence():
             millis_list = millis_interp
             motor_pos_list = pos_interp
 
-        return (dofs, millis_list, motor_pos_list)
+        return dofs, millis_list, motor_pos_list
 
     def to_file(self,seq_name='',robot_dir='./',force=False):
         # append number to file name if it already exists
-        if (seq_name == ''):
+        if seq_name == '':
             seq_name = self.seq_name
         name_ctr = 1
         init_name = seq_name
         if not force:
-            while (seq_name+'_sequence.json' in os.listdir(robot_dir)):
+            while seq_name+ '_sequence.json' in os.listdir(robot_dir):
                 seq_name = init_name+'_'+str(name_ctr)
                 name_ctr = name_ctr+1
 
@@ -159,15 +156,11 @@ class Frame:
     """
     Frame that defines position of robot at a given time
     """
-    # time
-    millis = 0
-    # dict {motor_name:position}
-    positions = {}
 
     # init
     def __init__(self, millis, positions):
         self.millis = millis
-        self.positions = positions
+        self.positions = positions if positions is not None else {}
 
     @classmethod
     def from_json(cls, f):
@@ -227,7 +220,7 @@ class SequencePrimitive(pypot.primitive.LoopPrimitive):
         self.post = post
 
         # not idler
-        if (not self.idler):
+        if not self.idler:
             # create primitive once
             pypot.primitive.Primitive.__init__(self, robot.robot)
             self.run = self.play
@@ -265,7 +258,7 @@ class SequencePrimitive(pypot.primitive.LoopPrimitive):
         for f in frames:
 
             # check if should stop
-            if (self.seq_stop.is_set()):
+            if self.seq_stop.is_set():
                 self.stop()
                 break
 
@@ -274,9 +267,9 @@ class SequencePrimitive(pypot.primitive.LoopPrimitive):
             # factor for the speed, make sure not 0
             t_delay_millis = (f.millis/max(self.speed,0.1) - cur_time)
             # skip if behind
-            if (t_delay_millis<0):
+            if t_delay_millis<0:
                 continue
-            if (t_delay_millis == 0):
+            if t_delay_millis == 0:
                 t_delay_millis = 200
             t_delay = t_delay_millis / 1000.0
 
@@ -315,9 +308,9 @@ class SequencePrimitive(pypot.primitive.LoopPrimitive):
                 motor_pos_dof = self.motor_pos[dof_key]
                 next_pos_dof = next_pos[dof_key]
                 # adjust posture
-                if (dof_key == 'tower_1'):
+                if dof_key == 'tower_1':
                     next_pos_dof = next_pos_dof + self.post
-                elif (dof_key == 'tower_2' or dof_key == 'tower_3'):
+                elif dof_key == 'tower_2' or dof_key == 'tower_3':
                     nex_pos_dof = next_pos_dof - self.post
 
                 del_pos_dof = next_pos_dof - f_0_pos[dof_key]
@@ -336,7 +329,7 @@ class SequencePrimitive(pypot.primitive.LoopPrimitive):
 
                 # map to velocity with *arbitrary* params based on the current DoF
                 vel = np.interp(np.abs(d_pos[dof_key]),[0,100],[0.1,1])
-                if (dof_key=='base'):
+                if dof_key== 'base':
                     vel = np.interp(np.abs(d_pos[dof_key]),[0,300],[0.2,3])
                 # vel_pos.append(vel)
                 vel_pos.update({dof_key:vel})
@@ -349,7 +342,7 @@ class SequencePrimitive(pypot.primitive.LoopPrimitive):
 
             # show difference taken between time according to frame and actual time to execute
             # print time.time()-start
-        if (not self.idler):
+        if not self.idler:
             self.stop()
 
 class RecorderPrimitive(pypot.primitive.Primitive):
@@ -357,8 +350,6 @@ class RecorderPrimitive(pypot.primitive.Primitive):
     Record Sequences in real time
     """
     # init lists for frames and Frame objects
-    frames = []
-    frames_list = []
 
     # init
     def __init__(self, robot, rec_stop):
@@ -385,9 +376,9 @@ class RecorderPrimitive(pypot.primitive.Primitive):
         self.Robot.set_compliant(False)
 
         # loop until thread stopper is set
-        while(1):
+        while 1:
             # handle stopper
-            if (self.rec_stop.is_set()):
+            if self.rec_stop.is_set():
                 self.teardown()
                 return
 
@@ -408,7 +399,9 @@ class RecorderPrimitive(pypot.primitive.Primitive):
             })
             time.sleep(0.1)
 
-    def save_rec(self, seq_name, robots=[], tmp=False):
+    def save_rec(self, seq_name, robots=None, tmp=False):
+        if robots is None:
+            robots = [self.Robot]
         """
         Save the recorded sequence
         args:
@@ -432,7 +425,7 @@ class RecorderPrimitive(pypot.primitive.Primitive):
             robot_dir += "tmp/" if tmp else ""
 
             # if sequence should go into subdirectory
-            if ('/' in seq_name):
+            if '/' in seq_name:
                 robot_dir += seq_name[:seq_name.rfind('/')]
                 seq_name = seq_name[seq_name.rfind('/'):]
             if not os.path.exists(robot_dir):
