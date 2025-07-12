@@ -13,8 +13,8 @@ if (len(motor_id)>1):
     quit()
 
 if (len(motor_id)<1):
-	print("No connected motors found! Did you remember to connect external power?")
-	quit()
+    print("No connected motors found! Did you remember to connect external power?")
+    quit()
 	
 motor_id = motor_id[0]
 
@@ -35,15 +35,15 @@ if new_id_str != '':
         print("Sorry, didn't work. Unplug and replug the motor and run again.")
 
 # set motor to 100
-motors.set_goal_position({motor_id:100})
+motors._set_control_value('goal position', {motor_id:100})
 input("Motor position: 100; Attach horn then press 'Enter'. ")
 
 # set motor to 0
-motors.set_goal_position({motor_id:0})
+motors._set_control_value('goal position',{motor_id:0})
 input("Motor position: 0; Calibrate string length then press 'Enter'. ")
 
 # set motor back to 100
-motors.set_goal_position({motor_id:100})
+motors._set_control_value('goal position', {motor_id:100})
 print("Motor position: 100; Calibration complete!")
 
 quit()

@@ -2,9 +2,6 @@
 Start up the blossom webserver, CLI client, and web client.
 """
 
-# make sure that prints will be supported
-from __future__ import print_function
-
 import sys
 import subprocess
 import argparse
@@ -281,7 +278,7 @@ def handle_input(robot, cmd, args=[]):
         # get sequence if not given
         if not args:
             args = ['']
-            # args[0] = raw_input('Sequence: ')
+            # args[0] = input('Sequence: ')
             seq = input('Sequence: ')
         else:
             seq = args[0]
@@ -380,15 +377,15 @@ def handle_input(robot, cmd, args=[]):
     # adjust speed (0.5 to 2.0)
     elif cmd == 'e':
         for bot in robots:
-            bot.speed = float(raw_input('Speed factor: '))
+            bot.speed = float(input('Speed factor: '))
     # adjust amplitude (0.5 to 2.0)
     elif cmd == 'a':
         for bot in robots:
-            bot.amp = float(raw_input('Amplitude factor: '))
+            bot.amp = float(input('Amplitude factor: '))
     # adjust posture (-150 to 150)
     elif cmd == 'p':
         for bot in robots:
-            bot.post = float(raw_input('Posture factor: '))
+            bot.post = float(input('Posture factor: '))
 
     # help
     elif cmd == 'h':
