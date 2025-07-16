@@ -3,47 +3,55 @@ import time
 
 # get ports and start connection to motors
 ports = pd.get_available_ports()
-motors = pd.Dxl320IO(ports[0],1000000)
+if not ports:
+    print("No serial ports found.")
+    quit()
 
-motor_id = motors.scan(range(20))
+motors = pd.Dxl320IO(ports[0], 1000000)
+
+motor_ids = motors.scan(range(20))
 
 # only work with one motor at a time
-if (len(motor_id)>1):
+if len(motor_ids) > 1:
     print("Only connect one motor at a time!")
     quit()
 
-if (len(motor_id)<1):
+if len(motor_ids) < 1:
     print("No connected motors found! Did you remember to connect external power?")
     quit()
-	
-motor_id = motor_id[0]
 
-print("Motor "+str(motor_id)+" found!")
+motor_id = motor_ids[0]
+print("Motor " + str(motor_id) + " found!")
 
-new_id_str = input("Enter motor ID (1-3 for towers, 4 for base, 5+ for etc). Press enter to leave the ID as is: ")
+new_id_str = input("Enter new motor ID (1-3 for towers, 4 for base, 5+ for etc). Press Enter to keep current ID: ")
 
 if new_id_str != '':
     new_id = int(new_id_str)
-    motors.disable_torque([motor_id])
-    print("Changing motor ID changed from "+str(motor_id)+" to "+str(new_id))
-    motors.change_id({motor_id:new_id})
-    time.sleep(0.2)
-
-    if (motors.ping(new_id) == True):
-        motor_id = new_id
+    if new_id != motor_id:
+        motors.disable_torque([motor_id])
+        print(f"Changing motor ID from {motor_id} to {new_id}")
+        try:
+            motors.change_id({motor_id: new_id})
+            time.sleep(0.2)
+            if motors.ping(new_id):
+                motor_id = new_id
+            else:
+                print("Sorry, ID change failed. Try unplugging and reconnecting the motor.")
+                quit()
+        except ValueError as e:
+            print("Error:", e)
+            quit()
     else:
-        print("Sorry, didn't work. Unplug and replug the motor and run again.")
+        print("New ID is the same as current. Skipping change.")
 
-# set motor to 100
-motors._set_control_value('goal position', {motor_id:100})
-input("Motor position: 100; Attach horn then press 'Enter'. ")
+# Calibration, step by step
+def set_position_and_wait(position, message):
+    print(f"Setting position to {position}...")
+    motors.set_goal_position({motor_id: position})
+    input(message)
 
-# set motor to 0
-motors._set_control_value('goal position',{motor_id:0})
-input("Motor position: 0; Calibrate string length then press 'Enter'. ")
+set_position_and_wait(100, "Motor position: 100. Attach horn then press 'Enter'. ")
+set_position_and_wait(0, "Motor position: 0. Calibrate string length then press 'Enter'. ")
+set_position_and_wait(100, "Motor position: 100. Calibration complete!")
 
-# set motor back to 100
-motors._set_control_value('goal position', {motor_id:100})
-print("Motor position: 100; Calibration complete!")
-
-quit()
+motors.close()
