@@ -138,7 +138,7 @@ def set_position():
     # split into measurements
     raw_data = request.get_json()
     imu = get_imu_data(raw_data)
-    mirror = raw_data['mirror']
+    mirror = raw_data.get('mirror', False)
 
     global server
     # get base motor positions, accounting for stored yaw reset position
