@@ -76,7 +76,7 @@ if only_one_motor:
 else:
     for motor_id in [1, 2, 3]: # tower motors
         calibrate(motor_id)
-    # calibrate(4)      # base
+    calibrate(4)      # base
     calibrate_ear(5)  # ears
 
 motors.close()
