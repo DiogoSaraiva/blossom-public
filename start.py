@@ -603,7 +603,7 @@ def parse_args(args):
                         default=srvr.get_ip_address())
     parser.add_argument('--browser-disable', '-b',
                         help='prevent a browser window from opening with the blossom UI', 
-                        action='store_true')
+                        action='store_true', default=True)
     parser.add_argument('--list-robots', '-l',
                         help='list all robot names', action='store_true')
     return parser.parse_args(args)
