@@ -24,7 +24,9 @@ import requests
 import logging
 # seed time for better randomness
 random.seed(time.time())
-
+SEQUENCES_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../blossom_public/src/sequences")
+)
 # turn off Flask logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -80,7 +82,7 @@ class SequenceRobot(robot.Robot):
         TODO - clean this up - try glob or os.walk
         """
         # get directory
-        seq_dir = './src/sequences/%s' % self.name
+        seq_dir = os.path.join(SEQUENCES_DIR, self.name)
         # make sure that directory for robot's seqs exist
         if not os.path.exists(seq_dir):
             os.makedirs(seq_dir)

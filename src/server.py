@@ -60,7 +60,7 @@ server = Server()
 cur_yaw = 0
 
 # paths relative to start.py, should make relative to this file in the future
-SEQUENCES_DIR = "./src/sequences/"
+SEQUENCES_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "sequences"))
 REACTIONS_DIR = "./src/reactions/"
 
 

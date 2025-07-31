@@ -5,6 +5,11 @@ import copy
 import numpy as np
 import os
 
+SEQUENCES_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../blossom_public/src/sequences")
+)
+
+
 class Sequence:
     """
     Sequence of Frames to be loaded/stored/played back
@@ -130,7 +135,9 @@ class Sequence:
 
         return dofs, millis_list, motor_pos_list
 
-    def to_file(self,seq_name='',robot_dir='./',force=False):
+    def to_file(self,seq_name='',robot_dir=None,force=False):
+        if robot_dir is None:
+            robot_dir = SEQUENCES_DIR
         # append number to file name if it already exists
         if seq_name == '':
             seq_name = self.seq_name
@@ -146,7 +153,7 @@ class Sequence:
         frames_list = [{'positions':[{'dof':dof[0],'pos':dof[1]} for dof in f.positions.items()],'millis':f.millis} for f in self.frames]
 
         # save to file
-        with open(robot_dir + seq_name + '_sequence.json', 'w') as seq_file:
+        with open(os.path.join(robot_dir, seq_name + '_sequence.json'), 'w') as seq_file:
             json.dump({'animation': seq_name, 'frame_list': frames_list}, seq_file, indent=2)
 
         # return the name of the saved sequenced (minus _sequence.json)
@@ -421,13 +428,12 @@ class RecorderPrimitive(pypot.primitive.Primitive):
                 robot.add_sequence(Sequence(seq_name, self.frames))
 
             # save to file
-            robot_dir = './src/sequences/' + robot.name + '/'
-            robot_dir += "tmp/" if tmp else ""
+            robot_dir = os.path.join(SEQUENCES_DIR, robot.name, "tmp" if tmp else "")
 
             # if sequence should go into subdirectory
             if '/' in seq_name:
-                robot_dir += seq_name[:seq_name.rfind('/')]
-                seq_name = seq_name[seq_name.rfind('/'):]
+                subfolder, seq_name = seq_name.rsplit('/', 1)
+                robot_dir = os.path.join(robot_dir, subfolder)
             if not os.path.exists(robot_dir):
                 os.makedirs(robot_dir)
 
