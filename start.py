@@ -59,7 +59,7 @@ class SequenceRobot(robot.Robot):
 
     def __init__(self, name, config):
         # init robot
-        
+
         br=57600
         super(SequenceRobot, self).__init__(config, br, name)
         # save configuration (list of motors for PyPot)
@@ -174,7 +174,7 @@ class SequenceRobot(robot.Robot):
 
         # start playback thread
         self.seq_thread = robot.sequence.SequencePrimitive(
-            self, self.seq_list[seq], self.seq_stop, idler=idler, speed=self.speed, amp=self.amp, post=self.post)      
+            self, self.seq_list[seq], self.seq_stop, idler=idler, speed=self.speed, amp=self.amp, post=self.post)
         self.seq_thread.start()
         # return thread
         return self.seq_thread
@@ -512,16 +512,16 @@ def start_server(host, port, hide_browser):
     [t.add_row([sentence[i:i + width]]) for i in range(0, len(sentence), width)]
 
     print(t)
-   
+
     #start_yarn()
     if not hide_browser:
 
         addr = "%s:%d" % (host, port)
         webbrowser.open("http:"+addr, new=2)
-    
+
     print("\nExample command: s -> *enter* -> yes -> *enter*")
     server.set_funcs(master_robot, robots, handle_input,
-                     record, stop_record, store_gesture)  
+                     record, stop_record, store_gesture)
     server.start_server(host, port)
 
 
@@ -546,6 +546,10 @@ def main(args):
 
     # use first name as master
     configs = RobotConfig().get_configs(args.names)
+    if args.usb_port:
+        first = args.names[0]
+        controller = list(configs[first]['controllers'].keys())[0]
+        configs[first]['controllers'][controller]['port'] = args.usb_port
     master_robot = safe_init_robot(args.names[0], configs[args.names[0]])
     configs.pop(args.names[0])
     # start robots
@@ -604,10 +608,11 @@ def parse_args(args):
     parser.add_argument('--host', '-i', type=str, help='IP address of webserver',
                         default=srvr.get_ip_address())
     parser.add_argument('--browser-disable', '-b',
-                        help='prevent a browser window from opening with the blossom UI', 
+                        help='prevent a browser window from opening with the blossom UI',
                         action='store_true', default=True)
     parser.add_argument('--list-robots', '-l',
                         help='list all robot names', action='store_true')
+    parser.add_argument('--usb-port', '-u', type=str, help='USB port')
     return parser.parse_args(args)
 
 
