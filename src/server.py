@@ -111,7 +111,7 @@ def handle_sequence(gesture):
         bot.post = server.post
 
     server.handle_input(server.master_robot, 's', [gesture])
-    return gesture, "fired"
+    return f"{gesture} fired", 200
 
 
 @app.route('/s/<gesture>/<idle>')
